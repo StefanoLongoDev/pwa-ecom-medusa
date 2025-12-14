@@ -1,0 +1,77 @@
+name: Deploy to Hetzner Server
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  deploy:
+    name: Deploy MedusaJS to Production
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT || 22 }}
+          script: |
+            cd /opt/medusa
+            
+            # Pull latest changes
+            git pull origin main || git pull origin master
+            
+            # Backup current .env if it exists
+            if [ -f .env ]; then
+              cp .env .env.backup
+            fi
+            
+            # Copy .env from backup if new one doesn't exist
+            if [ ! -f .env ] && [ -f .env.backup ]; then
+              cp .env.backup .env
+            fi
+            
+            # Rebuild and restart containers
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d --build
+            
+            # Wait for services to be ready
+            sleep 10
+            
+            # Run migrations
+            docker exec medusa-backend npm run db:migrate || true
+            
+            # Health check
+            sleep 5
+            if curl -f http://localhost:9000/health > /dev/null 2>&1; then
+              echo "✅ Deployment successful! MedusaJS is healthy."
+            else
+              echo "⚠️ Health check failed. Check logs: docker compose -f docker-compose.prod.yml logs medusa"
+              exit 1
+            fi
+
+      - name: Deployment Status
+        if: success()
+        run: |
+          echo "🚀 MedusaJS deployed successfully!"
+          echo "API: http://${{ secrets.SERVER_HOST }}:9000"
+          echo "Admin: http://${{ secrets.SERVER_HOST }}:9000/app"
+
+sed -i "s/GENERATE_WITH_openssl_rand_hex_32/$JWT_SECRET/" .env
+sed -i "s/GENERATE_WITH_openssl_rand_hex_16/$PG_PASS/" .env
+sed -i "0,/GENERATE_WITH_openssl_rand_hex_16/s//$REDIS_PASS/" .env
+sed -i "s/GENERATE_WITH_openssl_rand_hex_32/$COOKIE_SECRET/" .env
+sed -i "s|STORE_CORS=.*|STORE_CORS=http://188.245.102.198:9000,http://localhost:3000|" .env
+sed -i "s|ADMIN_CORS=.*|ADMIN_CORS=http://188.245.102.198:9000,http://localhost:9000|" .env
+sed -i "s|AUTH_CORS=.*|AUTH_CORS=http://188.245.102.198:9000,http://localhost:9000|" .env
+sed -i "s|BACKEND_URL=.*|BACKEND_URL=http://188.245.102.198:9000|" .env
+sed -i "s|MEDUSA_ADMIN_BACKEND_URL=.*|MEDUSA_ADMIN_BACKEND_URL=http://188.245.102.198:9000|" .env
+sed -i "s/NODE_ENV=development/NODE_ENV=production/" .env
