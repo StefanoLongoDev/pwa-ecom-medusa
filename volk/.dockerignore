@@ -1,12 +1,13 @@
 # Dependencies
 node_modules
 npm-debug.log
+yarn-error.log
 
-# Build output
+# Build output (we build inside Docker)
 .medusa
 dist
 
-# Environment files
+# Environment files (use docker-compose env or .env on server)
 .env
 .env.local
 .env.*.local
@@ -24,8 +25,9 @@ Thumbs.db
 # Git
 .git
 .gitignore
+.github
 
-# Docker
+# Docker files themselves
 Dockerfile
 docker-compose*.yml
 
@@ -36,7 +38,14 @@ logs
 # Test
 coverage
 .nyc_output
+integration-tests
 
-# Misc
+# Documentation
 README.md
 CHANGELOG.md
+*.md
+
+# Misc
+.prettierrc
+.eslintrc*
+

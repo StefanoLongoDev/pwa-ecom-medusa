@@ -1,11 +1,25 @@
 #!/bin/sh
+set -e
 
-# Run migrations and start server
+echo "============================================"
+echo "Medusa Backend - Starting..."
+echo "============================================"
+
+# Wait for database to be ready (extra safety)
+echo "Waiting for database connection..."
+sleep 3
+
+# Run database migrations
 echo "Running database migrations..."
 npx medusa db:migrate
 
-echo "Seeding database..."
-npm run seed || echo "Seeding failed, continuing..."
+# Run seed if enabled (only on first run)
+if [ "$RUN_SEED" = "true" ]; then
+    echo "Seeding database..."
+    npm run seed || echo "Seeding skipped or already done"
+fi
 
-echo "Starting Medusa development server..."
-npm run dev
+# Start Medusa in production mode
+echo "Starting Medusa server in production mode..."
+echo "============================================"
+npx medusa start
