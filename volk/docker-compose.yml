@@ -50,6 +50,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: medusa-${ENV_NAME}:latest
     container_name: medusa-${ENV_NAME}-backend
     restart: unless-stopped
     depends_on:
