@@ -64,6 +64,7 @@ services:
     ports:
       - "${MEDUSA_PORT:-9000}:9000"
     environment:
+      - ENV_NAME=${ENV_NAME:-unknown}
       - DATABASE_URL=postgres://${POSTGRES_USER:-medusa}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-medusa}
       - REDIS_URL=redis://redis:6379
       - NODE_ENV=production

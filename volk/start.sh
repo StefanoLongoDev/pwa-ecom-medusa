@@ -9,7 +9,7 @@ echo "============================================"
 echo "Waiting for database connection..."
 sleep 3
 
-# Run database migrations
+# Run database migrations from root directory
 echo "Running database migrations..."
 npx medusa db:migrate
 
@@ -19,7 +19,8 @@ if [ "$RUN_SEED" = "true" ]; then
     npm run seed || echo "Seeding skipped or already done"
 fi
 
-# Start Medusa
+# Start Medusa from the server build directory
 echo "Starting Medusa server (${ENV_NAME:-unknown})..."
 echo "============================================"
+cd .medusa/server
 npx medusa start

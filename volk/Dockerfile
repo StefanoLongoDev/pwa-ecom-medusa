@@ -24,12 +24,13 @@ ENV MEDUSA_BACKEND_URL=$MEDUSA_BACKEND_URL
 ENV MEDUSA_ADMIN_BACKEND_URL=$MEDUSA_ADMIN_BACKEND_URL
 
 # Build backend and admin
-RUN echo "Building Medusa with BACKEND_URL: $MEDUSA_BACKEND_URL" && \
-    yarn build && \
-    echo "Build complete. Exploring .medusa structure:" && \
-    find .medusa -type f -name "*.html" 2>/dev/null || echo "No HTML files found" && \
-    echo "Full .medusa structure:" && \
-    ls -laR .medusa/ | head -100
+RUN yarn build
+
+# Verify admin was built correctly (path: .medusa/server/public/admin/)
+RUN test -f .medusa/server/public/admin/index.html || (echo "FATAL: Admin not built!" && exit 1)
+
+# Install production dependencies in the server build directory
+RUN cd .medusa/server && yarn install --frozen-lockfile
 
 # Expose Medusa port
 EXPOSE 9000
