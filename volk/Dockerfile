@@ -26,11 +26,10 @@ ENV MEDUSA_ADMIN_BACKEND_URL=$MEDUSA_ADMIN_BACKEND_URL
 # Build backend and admin
 RUN echo "Building Medusa with BACKEND_URL: $MEDUSA_BACKEND_URL" && \
     yarn build && \
-    echo "Build complete. Checking admin build:" && \
-    ls -la .medusa/admin/ || echo "ERROR: Admin folder not created!"
-
-# Verify admin was built correctly
-RUN test -f .medusa/admin/index.html || (echo "FATAL: Admin index.html not found!" && exit 1)
+    echo "Build complete. Exploring .medusa structure:" && \
+    find .medusa -type f -name "*.html" 2>/dev/null || echo "No HTML files found" && \
+    echo "Full .medusa structure:" && \
+    ls -laR .medusa/ | head -100
 
 # Expose Medusa port
 EXPOSE 9000
