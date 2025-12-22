@@ -2,7 +2,7 @@
 set -e
 
 echo "============================================"
-echo "Medusa Backend - Starting..."
+echo "Medusa Backend - Starting (${ENV_NAME:-unknown})..."
 echo "============================================"
 
 # Wait for database to be ready (extra safety)
@@ -19,7 +19,7 @@ if [ "$RUN_SEED" = "true" ]; then
     npm run seed || echo "Seeding skipped or already done"
 fi
 
-# Start Medusa in production mode
-echo "Starting Medusa server in production mode..."
+# Start Medusa
+echo "Starting Medusa server (${ENV_NAME:-unknown})..."
 echo "============================================"
 npx medusa start
