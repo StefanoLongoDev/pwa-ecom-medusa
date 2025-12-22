@@ -15,10 +15,22 @@ RUN yarn install --frozen-lockfile
 # Copy all source code
 COPY . .
 
-# Build backend and admin explicitly
-RUN yarn build
-RUN ls -la .medusa/ || echo "No .medusa folder"
-RUN ls -la .medusa/admin/ || echo "No admin folder - building admin..."
+# Build arguments for admin dashboard
+ARG MEDUSA_BACKEND_URL=http://localhost:9000
+ARG MEDUSA_ADMIN_BACKEND_URL=http://localhost:9000
+
+# Set environment variables for the build
+ENV MEDUSA_BACKEND_URL=$MEDUSA_BACKEND_URL
+ENV MEDUSA_ADMIN_BACKEND_URL=$MEDUSA_ADMIN_BACKEND_URL
+
+# Build backend and admin
+RUN echo "Building Medusa with BACKEND_URL: $MEDUSA_BACKEND_URL" && \
+    yarn build && \
+    echo "Build complete. Checking admin build:" && \
+    ls -la .medusa/admin/ || echo "ERROR: Admin folder not created!"
+
+# Verify admin was built correctly
+RUN test -f .medusa/admin/index.html || (echo "FATAL: Admin index.html not found!" && exit 1)
 
 # Expose Medusa port
 EXPOSE 9000

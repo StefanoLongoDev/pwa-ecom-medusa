@@ -50,6 +50,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - MEDUSA_BACKEND_URL=${MEDUSA_BACKEND_URL:?MEDUSA_BACKEND_URL is required}
+        - MEDUSA_ADMIN_BACKEND_URL=${MEDUSA_BACKEND_URL:?MEDUSA_BACKEND_URL is required}
     image: medusa-${ENV_NAME}:latest
     container_name: medusa-${ENV_NAME}-backend
     restart: unless-stopped
