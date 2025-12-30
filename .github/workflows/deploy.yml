@@ -35,7 +35,7 @@ jobs:
             cd $DEPLOY_PATH
             echo "🚀 Deploying $DEPLOY_ENV..."
             git pull origin ${{ github.ref_name }}
-            sudo docker compose -p $PROJECT_NAME build --no-cache
+            sudo docker compose -p $PROJECT_NAME build
             sudo docker compose -p $PROJECT_NAME down
             sudo docker compose -p $PROJECT_NAME up -d
             echo "✅ Deploy completed!"
