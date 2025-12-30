@@ -15,7 +15,7 @@ npx medusa db:migrate
 
 # Run seed if enabled (only on first run)
 if [ "$RUN_SEED" = "true" ]; then
-    echo "Seeding database..."
+echo "Seeding database..."
     npm run seed || echo "Seeding skipped or already done"
 fi
 
