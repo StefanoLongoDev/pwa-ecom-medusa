@@ -1,103 +1,56 @@
-import { Container, Button, Checkbox, Heading, Text } from "@medusajs/ui"
-import { defineRouteConfig } from "@medusajs/admin-sdk"
-import { useState } from "react"
+import {defineRouteConfig} from '@medusajs/admin-sdk';
+import {Button, Checkbox, Container, Heading, Text} from '@medusajs/ui';
+import {useState} from 'react';
 
-const tagsList = [
-	"products",
-	"collections",
-	"orders",
-	"pages",
-	"storefront",
-]
+const tagsList = ['products', 'collections', 'orders', 'pages', 'storefront'];
 
 const InvalidateCachePage = () => {
-	const [selected, setSelected] = useState<string[]>([])
-	const [loading, setLoading] = useState(false)
-	const [statusMsg, setStatusMsg] = useState("")
+	const [selected, setSelected] = useState<string[]>([]);
+	const [loading, setLoading] = useState(false);
+	const [statusMsg, setStatusMsg] = useState('');
 
 	const toggleTag = (tag: string) => {
-		setSelected(prev =>
-			prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
-		)
-	}
+		setSelected((prev) =>
+			prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+		);
+	};
 
 	const submitInvalidate = async () => {
-		setLoading(true)
-		setStatusMsg("")
+		setLoading(true);
+		setStatusMsg('');
 
 		try {
-			const frontendUrl = import.meta.env.VITE_CACHE_INVALIDATION_URL || ""
-			const cacheSecret = import.meta.env.VITE_CACHE_INVALIDATION_SECRET || ""
-
-			if (!frontendUrl) {
-				throw new Error("VITE_CACHE_INVALIDATION_URL not configured")
+			if (selected.length === 0) {
+				throw new Error('Please select at least one tag');
 			}
 
-			if (!cacheSecret) {
-				throw new Error("VITE_CACHE_INVALIDATION_SECRET not configured")
+			const body =
+				selected.length === tagsList.length ? {all: true} : {tags: selected};
+
+			const res = await fetch('/admin/clear-cache', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(body)
+			});
+
+			if (!res.ok) {
+				const errorData = await res.json().catch(() => ({}));
+				throw new Error(`HTTP ${res.status} - ${errorData.error || res.statusText}`);
 			}
 
-			const revalidateUrl = `${frontendUrl}/api/revalidate`
-
-			// If all tags are selected, invalidate all
-			if (selected.length === tagsList.length) {
-				const res = await fetch(revalidateUrl, {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-						"Authorization": `Bearer ${cacheSecret}`,
-					},
-					body: JSON.stringify({ all: true }),
-				})
-
-				if (!res.ok) {
-					const errorData = await res.json().catch(() => ({}))
-					throw new Error(`HTTP Error: ${res.status} - ${errorData.error || res.statusText}`)
-				}
-
-				const data = await res.json()
-				setStatusMsg(data.message || "Cache invalidated successfully for all tags!")
-			} else {
-				// Invalidate each selected tag
-				const results = await Promise.allSettled(
-					selected.map(tag =>
-						fetch(revalidateUrl, {
-							method: "POST",
-							headers: {
-								"Content-Type": "application/json",
-								"Authorization": `Bearer ${cacheSecret}`,
-							},
-							body: JSON.stringify({ tag }),
-						})
-					)
-				)
-
-				const failed = results.filter(r => r.status === "rejected" || (r.status === "fulfilled" && !r.value.ok))
-
-				if (failed.length > 0) {
-					const errorMessages = await Promise.all(
-						failed.map(async (r) => {
-							if (r.status === "rejected") return r.reason?.message || "Unknown error"
-							try {
-								const errorData = await r.value.json()
-								return errorData.error || `HTTP ${r.value.status}`
-							} catch {
-								return `HTTP ${r.value.status}`
-							}
-						})
-					)
-					throw new Error(`Some invalidations failed: ${errorMessages.join(", ")}`)
-				}
-
-				setStatusMsg(`Cache invalidated successfully for ${selected.length} tag(s)!`)
-			}
+			const data = await res.json();
+			setStatusMsg(
+				data.message || `Cache invalidated successfully for ${selected.length} tag(s)!`
+			);
 		} catch (err) {
-			console.error(err)
-			setStatusMsg(err instanceof Error ? err.message : "Error during invalidation.")
+			console.error(err);
+			setStatusMsg(err instanceof Error ? err.message : 'Error during cache invalidation.');
 		} finally {
-			setLoading(false)
+			setLoading(false);
 		}
-	}
+	};
 
 	return (
 		<Container className="p-6 space-y-6">
@@ -105,7 +58,7 @@ const InvalidateCachePage = () => {
 			<Text>Select which cache tags to clear:</Text>
 
 			<div className="flex flex-col gap-3">
-				{tagsList.map(tag => (
+				{tagsList.map((tag) => (
 					<label key={tag} className="flex items-center gap-2 cursor-pointer">
 						<Checkbox
 							checked={selected.includes(tag)}
@@ -116,22 +69,17 @@ const InvalidateCachePage = () => {
 				))}
 			</div>
 
-			<Button
-				onClick={submitInvalidate}
-				isLoading={loading}
-				disabled={selected.length === 0}
-			>
+			<Button onClick={submitInvalidate} isLoading={loading} disabled={selected.length === 0}>
 				Invalidate Selected Tags
 			</Button>
 
 			{statusMsg && <Text>{statusMsg}</Text>}
 		</Container>
-	)
-}
+	);
+};
 
-// Config for admin sidebar
 export const config = defineRouteConfig({
-	label: "Invalidate Cache",
-})
+	label: 'Invalidate Cache'
+});
 
-export default InvalidateCachePage
+export default InvalidateCachePage;
