@@ -2,7 +2,7 @@ import {defineRouteConfig} from '@medusajs/admin-sdk';
 import {Button, Checkbox, Container, Heading, Text} from '@medusajs/ui';
 import {useState} from 'react';
 
-const tagsList = ['products', 'collections', 'orders', 'pages', 'storefront'];
+const tagsList = ['products', 'collections', 'categories', 'regions', 'medusa', 'contentful'];
 
 const InvalidateCachePage = () => {
 	const [selected, setSelected] = useState<string[]>([]);
