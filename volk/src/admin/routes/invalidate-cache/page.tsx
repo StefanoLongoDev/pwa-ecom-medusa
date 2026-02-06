@@ -15,6 +15,10 @@ const InvalidateCachePage = () => {
 		);
 	};
 
+	const toggleAll = () => {
+		setSelected((prev) => prev.length === tagsList.length ? [] : [...tagsList]);
+	};
+
 	const submitInvalidate = async () => {
 		setLoading(true);
 		setStatusMsg('');
@@ -58,6 +62,13 @@ const InvalidateCachePage = () => {
 			<Text>Select which cache tags to clear:</Text>
 
 			<div className="flex flex-col gap-3">
+				<label className="flex items-center gap-2 cursor-pointer border-b pb-2 mb-1">
+					<Checkbox
+						checked={selected.length === tagsList.length}
+						onCheckedChange={toggleAll}
+					/>
+					<Text className="font-medium">Select All</Text>
+				</label>
 				{tagsList.map((tag) => (
 					<label key={tag} className="flex items-center gap-2 cursor-pointer">
 						<Checkbox
