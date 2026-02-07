@@ -28,5 +28,19 @@ module.exports = defineConfig({
 				allowedHosts: true
 			}
 		})
-	}
+	},
+	modules: [
+		{
+			resolve: '@medusajs/auth',
+			options: {
+				providers: [
+					{
+						resolve: '@medusajs/auth-emailpass',
+						id: 'emailpass',
+						options: {}
+					}
+				]
+			}
+		}
+	]
 });
