@@ -38,4 +38,6 @@ jobs:
             docker compose -p $PROJECT_NAME build
             docker compose -p $PROJECT_NAME down
             docker compose -p $PROJECT_NAME up -d
+            echo "⏳ Running database migrations..."
+            docker compose -p $PROJECT_NAME exec -T backend npx medusa db:migrate
             echo "✅ Deploy completed!"
